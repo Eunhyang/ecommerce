@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="row">
+<div class="col-sm-8">
+	<h2>{{ object.title }}</h2>
+	
+	{% if object.productimage_set.count > 0 %}
+	<div>
+	{% for img in object.productimage_set.all %}
+	<img class="image-responsive" src="{{ img.image.url }}" alt="">
+	{% endfor %}
+	</div>
+	{% endif %}
+
+	{{object.description}}	
+</div>
+
+
+<!-- side-bar -->
+<div class="col-sm-4"> 
+	<h4>{{object.price}}</h4>
+	{% if object.variation_set.count > 1 %}
+	<select class="form-control">
+		{% for vari_obj in object.variation_set.all %}
+
+		<option value="{{ vari_obj.id }}">{{ vari_obj.title }}</option>
+		{% endfor %}
+	</select>
+	{% endif %}
+
+<br/>
+<a href="">장바구니 담기</a>
+
+<hr/>
+<h4>연관 상품</h4>
+</div>
+<!-- end side-bar -->
+
+</div>
+{% endblock %}
