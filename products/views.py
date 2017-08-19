@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.http import Http404
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
@@ -34,11 +35,12 @@ class VariationListView(LoginRequiredMixin, ListView):
 			formset.save(commit=False)
 			for form in formset:
 				new_item = form.save(commit=False) # 기존의 form + 새로운 form 저장하기위해(product값 필요) 아래와 같이 처리
-				product_pk = self.kwargs.get('pk') 
-				product = get_object_or_404(Product, pk=product_pk)
-				new_item.product = product
-				new_item.save()
-			#messages.success(request, "inventory update 성공!")
+				if new_item.title:
+					product_pk = self.kwargs.get('pk') 
+					product = get_object_or_404(Product, pk=product_pk)
+					new_item.product = product
+					new_item.save()
+			messages.success(request, "inventory update 성공!")
 			return redirect("products")
 		raise Http404
 
