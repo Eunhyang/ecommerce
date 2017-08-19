@@ -1,15 +1,16 @@
 from django.http import Http404
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.db.models import Q
 
 # Create your views here.
 from .forms import VariationInventoryFormSet
 from .models import Product, Variation
+from .mixins import StaffRequiredMixin, LoginRequiredMixin
 
-class VariationListView(ListView):
+class VariationListView(LoginRequiredMixin, ListView):
 
 	model = Variation
 	#template_name = "<appname>/<modelname>_detail.html"
@@ -20,15 +21,25 @@ class VariationListView(ListView):
 		# print context
 		return context
 
-	def get_queryset(self, *args, **kwargs): #오버라이딩
-		print(self.kwargs)
+	def get_queryset(self, *args, **kwargs): #오버라이딩\
 		product_pk = self.kwargs.get('pk') #self.kwargs = {'pk':'pk값'}
 		product = get_object_or_404(Product, pk=product_pk)
 		queryset = product.variation_set.all()
 		return queryset
 
 	def post(self, request ,*args, **kwargs):
+		formset = VariationInventoryFormSet(request.POST, request.FILES)
 		print(request.POST)
+		if formset.is_valid():
+			formset.save(commit=False)
+			for form in formset:
+				new_item = form.save(commit=False) # 기존의 form + 새로운 form 저장하기위해(product값 필요) 아래와 같이 처리
+				product_pk = self.kwargs.get('pk') 
+				product = get_object_or_404(Product, pk=product_pk)
+				new_item.product = product
+				new_item.save()
+			#messages.success(request, "inventory update 성공!")
+			return redirect("products")
 		raise Http404
 
 
